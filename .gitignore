@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# macos things
+.DS_Store
+
+# do not include stan binaries
+**/stan_models/*
+!**/stan_models/*.stan
