@@ -136,3 +136,6 @@ dmypy.json
 !**/stan_models/*.stan
 # Editor data
 .idea
+
+# stan logs
+logs/
