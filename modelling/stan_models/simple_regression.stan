@@ -17,6 +17,6 @@ model {
    beta ~ normal(beta_mu, beta_scale);
    y ~ bernoulli_logit_glm(X, alpha, beta);
 }
-generated quantities {
-   vector[N] theta = logit(alpha + X * beta);
-}
+// generated quantities {
+//    vector[N] theta = logit(alpha + X * beta);
+// }
