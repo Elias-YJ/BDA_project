@@ -1,0 +1,5 @@
+Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Exception: normal_lpdf: Scale parameter[7] is 0, but must be positive! (in '/Users/leevi/repos/bda-project/modelling/stan_models/hierarchical_v5.stan', line 41, column 8 to column 46)
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+

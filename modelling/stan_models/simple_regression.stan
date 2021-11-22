@@ -11,9 +11,11 @@ data {
 parameters {
     vector[M] beta;  // weights for regressors
     real alpha;      // constant
+}
+transformed parameters {
     vector[N] theta;
     for (i in 1:N) {
-        theta[i] = alpha[gj[i]] + X[i, :] * beta[gj[i]];
+        theta[i] = alpha + X[i, :] * beta;
     }
 }
 model {
@@ -25,6 +27,6 @@ model {
 generated quantities {
     vector[N] log_lik;
     for (n in 1:N){
-        log_lik[n] = bernoulli_logit_lpmf(theta[n])
+        log_lik[n] = bernoulli_logit_lpmf(y[n] | theta[n]);
     }
 }

@@ -23,6 +23,8 @@ parameters {
 
     array[J] real       alpha;
     array[J] vector[M]  beta;
+}
+transformed parameters {
     vector[N] theta;
     for (i in 1:N) {
         theta[i] = alpha[gj[i]] + X[i, :] * beta[gj[i]];
@@ -43,6 +45,6 @@ model {
 generated quantities {
     vector[N] log_lik;
     for (n in 1:N){
-        log_lik[n] = bernoulli_logit_lpmf(theta[n])
+        log_lik[n] = bernoulli_logit_lpmf(y[n] | theta[n]);
     }
 }
