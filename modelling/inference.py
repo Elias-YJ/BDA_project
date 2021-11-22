@@ -6,6 +6,8 @@ import cmdstanpy as stan
 from scipy import stats
 from os.path import join
 import pickle
+import shutil
+
 
 from modelling.util.data_loader import load_data
 from modelling.util.data_formatters import format_logreg_data, format_hierarchical_data
@@ -14,11 +16,11 @@ from modelling.util.data_formatters import format_logreg_data, format_hierarchic
 def run_all():
     stan_opts = dict(
         show_progress=True,
-        output_dir='./inference',
         iter_sampling=4000,
         threads_per_chain=4,
         seed=1
     )
+    output_dir='./inference'
 
 
     df = load_data(include_dummies=True, norm_data=True)
@@ -48,18 +50,27 @@ def run_all():
 
 
     logreg_model = stan.CmdStanModel(stan_file='modelling/stan_models/simple_regression.stan')
-    logreg_fit = logreg_model.sample(logreg_input, **stan_opts)
+    hier_model = stan.CmdStanModel(stan_file='modelling/stan_models/hierarchical_v5.stan')
+
+    shutil.rmtree(output_dir)
+    
+    logreg_fit = logreg_model.sample(
+        logreg_input,
+        output_dir = join(output_dir, 'logreg'),
+        **stan_opts)
     logreg_summary = logreg_fit.summary()
 
 
-    hier_model = stan.CmdStanModel(stan_file='modelling/stan_models/hierarchical_v5.stan')
-    hier_fit = hier_model.sample(hier_input, **stan_opts)
+    hier_fit = hier_model.sample(
+        hier_input,
+        output_dir = join(output_dir, 'hier'),
+        **stan_opts)
     hier_summary = hier_fit.summary()
 
-    with open(join(stan_opts['output_dir'], 'logreg_input.pkl'), 'wb') as f:
+    with open(join(output_dir, 'logreg', 'logreg_input.pkl'), 'wb') as f:
         pickle.dump(logreg_input, f)
 
-    with open(join(stan_opts['output_dir'], 'hier_input.pkl'), 'wb') as f:
+    with open(join(output_dir, 'hier', 'hier_input.pkl'), 'wb') as f:
         pickle.dump(hier_input, f)
 
     short_logreg_summary = logreg_summary.filter(regex=r'(alpha|beta)', axis=0)
@@ -67,11 +78,12 @@ def run_all():
     print(short_logreg_summary)
     print(short_hier_summary)
 
-    short_logreg_summary.to_csv(join(stan_opts['output_dir'], 'logreg_summary.csv'))
-    short_hier_summary.to_csv(join(stan_opts['output_dir'], 'hier_summary.csv'))
+    short_logreg_summary.to_csv(join(output_dir, 'logreg', 'logreg_summary.csv'))
+    short_hier_summary.to_csv(join(output_dir, 'hier', 'hier_summary.csv'))
 
 
 def cross_validate(filename):
+    import arviz as az
     file_path = f'inference/{filename}'
 
     # Load model data from sampling output files
