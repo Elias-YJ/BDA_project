@@ -38,9 +38,12 @@ model {
         for (i in 1:N) {
             a[i] = alpha[gj[i]] + X[i, :] * beta[gj[i]];
         }
-        // y ~ bernoulli_logit_glm(X, a, b);
         y ~ bernoulli_logit(a);
     }
-    // for (i in 1:N)
-    //     y[i] ~ bernoulli_logit_glm(X[i, :], alpha[gj[i]], beta[gj[i]]);
+}
+generated quantities {
+    vector[N] log_lik;
+    for (n in 1:N){
+        log_lik[n] = bernoulli_logit_lpmf(a[n])
+    }
 }

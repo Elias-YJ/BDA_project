@@ -2,6 +2,7 @@ import cmdstanpy as stan
 import pandas as pd
 import numpy as np
 import cmdstanpy as stan
+import arviz as az
 # import matplotlib.pyplot as plt
 from scipy import stats
 from os.path import join
@@ -69,3 +70,13 @@ def run_all():
 
     short_logreg_summary.to_csv(join(stan_opts['output_dir'], 'logreg_summary.csv'))
     short_hier_summary.to_csv(join(stan_opts['output_dir'], 'hier_summary.csv'))
+
+
+def cross_validate(filename):
+    file_path = f'inference/{filename}'
+
+    # Load model data from sampling output files
+    model = az.from_cmdstan(file_path, log_likelihood='log_lik')
+    loo = az.loo(model)
+
+    return loo
