@@ -23,6 +23,10 @@ parameters {
 
     array[J] real       alpha;
     array[J] vector[M]  beta;
+    vector[N] theta;
+    for (i in 1:N) {
+        theta[i] = alpha[gj[i]] + X[i, :] * beta[gj[i]];
+    }
 }
 model {
     alpha_mu ~ normal(am_mu, am_scale);
@@ -33,17 +37,12 @@ model {
     alpha ~ normal(alpha_mu, alpha_sigma);
     for (j in 1:J)
         beta[j] ~ normal(beta_mu, beta_sigma);
-    {
-        vector[N] a;
-        for (i in 1:N) {
-            a[i] = alpha[gj[i]] + X[i, :] * beta[gj[i]];
-        }
-        y ~ bernoulli_logit(a);
-    }
+
+    y ~ bernoulli_logit(theta);
 }
 generated quantities {
     vector[N] log_lik;
     for (n in 1:N){
-        log_lik[n] = bernoulli_logit_lpmf(a[n])
+        log_lik[n] = bernoulli_logit_lpmf(theta[n])
     }
 }
