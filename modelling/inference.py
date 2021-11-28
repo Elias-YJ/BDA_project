@@ -20,85 +20,37 @@ STAN_OPTS = dict(
     seed=1
 )
 
-# OUTPUT_DIR='./inference'
-OUTPUT_DIR='./inference_sex'
+OUTPUT_DIR='./inference'
 
-def run_models(stan_opts: Dict = None, output_dir: str = OUTPUT_DIR):
-    # df = load_data(include_dummies=True, norm_data=True)
-
-    # logreg_data = format_logreg_data(df)
-    # logreg_input = {**logreg_data, **logreg_priors}
-
-
-    # hier_data = format_hierarchical_data(df, ['chest_pain_type'])
-    # hier_priors = dict(
-    #     am_mu = 0,
-    #     am_scale = 1,
-    #     bm_mu = np.zeros(hier_data['M']),
-    #     bm_scale = np.ones(hier_data['M']),
-    #     as_mu = 0,
-    #     as_scale = 1,
-    #     bs_mu = np.zeros(hier_data['M']),
-    #     bs_scale = np.ones(hier_data['M']),
-    # )
-    # hier_input = {**hier_data, **hier_priors}
-
-
-    # logreg_model = stan.CmdStanModel(stan_file='modelling/stan_models/simple_regression.stan')
-    # hier_model = stan.CmdStanModel(stan_file='modelling/stan_models/hierarchical_v5.stan')
-
-    # shutil.rmtree(output_dir)
-    
-    # logreg_fit = logreg_model.sample(
-    #     logreg_input,
-    #     output_dir = join(output_dir, 'logreg'),
-    #     **stan_opts)
-    # logreg_summary = logreg_fit.summary()
-
-
-    # hier_fit = hier_model.sample(
-    #     hier_input,
-    #     output_dir = join(output_dir, 'hier'),
-    #     **stan_opts)
-    # hier_summary = hier_fit.summary()
-
-    # with open(join(output_dir, 'logreg', 'logreg_input.pkl'), 'wb') as f:
-    #     pickle.dump(logreg_input, f)
-
-    # with open(join(output_dir, 'hier', 'hier_input.pkl'), 'wb') as f:
-    #     pickle.dump(hier_input, f)
-
-    # short_logreg_summary = logreg_summary.filter(regex=r'(alpha|beta)', axis=0)
-    # short_hier_summary = hier_summary.filter(regex=r'(alpha|beta)\[', axis=0)
-    # print(short_logreg_summary)
-    # print(short_hier_summary)
-
-    # short_logreg_summary.to_csv(join(output_dir, 'logreg', 'logreg_summary.csv'))
-    # short_hier_summary.to_csv(join(output_dir, 'hier', 'hier_summary.csv'))
-
-    logreg_model = stan.CmdStanModel(stan_file='modelling/stan_models/simple_regression.stan', model_name='logreg')
-    hier_model = stan.CmdStanModel(stan_file='modelling/stan_models/hierarchical_v5.stan', model_name='hier')
+def run_models(stan_opts: Dict = None, output_dir: str = OUTPUT_DIR, **kwargs):
+    run_list = kwargs.get('model_list', ['logreg', 'hier'])
+    hier_column = kwargs.get('hier_column', 'chest_pain_type')
     df = load_data(include_dummies=True, norm_data=True)
+    if 'logreg' in run_list:
+        run_logreg(df, stan_opts, output_dir)
+    if 'hier' in run_list:
+        run_hier(df, stan_opts, output_dir, hier_column=hier_column)
 
-    models = [logreg_model, hier_model]
-    datasets = [
-        format_logreg_data(df),
-        # format_hierarchical_data(df, ['chest_pain_type'])
-        format_hierarchical_data(df, ['sex'])
-    ]
-    prior_formatters = [get_logreg_priors, get_hier_priors]
-    priors = [fmt(data) for fmt, data in zip(prior_formatters, datasets)]
 
-    for model, data, priors in zip(models, datasets, priors):
-        run_model(model, data, priors, stan_opts=stan_opts, output_dir=output_dir)
+def run_logreg(df, stan_opts, output_dir):
+    model = stan.CmdStanModel(stan_file='modelling/stan_models/simple_regression.stan', model_name='logreg')
+    data = format_logreg_data(df)
+    priors = get_logreg_priors(data)
+    run_model(model, data, priors, stan_opts, output_dir)
 
+
+def run_hier(df, stan_opts, output_dir, hier_column):
+    model = stan.CmdStanModel(stan_file='modelling/stan_models/hierarchical_v5.stan', model_name='hier')
+    data = format_hierarchical_data(df, [hier_column])
+    priors = get_hier_priors(data)
+    run_model(model, data, priors, stan_opts, output_dir)
 
 
 def get_logreg_priors(data):
     priors = dict(
-        alpha_mu = 0,
+        alpha_mu = 0 + 1,
         alpha_scale = 1,
-        beta_mu = np.zeros(data['M']),
+        beta_mu = np.zeros(data['M'])+1,
         beta_scale = np.ones(data['M']),
     )
     return priors
@@ -106,13 +58,13 @@ def get_logreg_priors(data):
 
 def get_hier_priors(data):
     priors = dict(
-        am_mu = 0,
+        am_mu = 0+1,
         am_scale = 1,
-        bm_mu = np.zeros(data['M']),
+        bm_mu = np.zeros(data['M'])+1,
         bm_scale = np.ones(data['M']),
-        as_mu = 0,
+        as_mu = 0+1,
         as_scale = 1,
-        bs_mu = np.zeros(data['M']),
+        bs_mu = np.zeros(data['M'])+1,
         bs_scale = np.ones(data['M']),
     )
     return priors
