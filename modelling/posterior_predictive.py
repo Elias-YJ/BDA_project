@@ -28,9 +28,9 @@ def points_to_plot(y, theta_hat):
     return fig, ax
 
 
-def make_plots():
-    model_logreg = stan.from_csv('inference/logreg/*[1-4].csv')
-    model_hier = stan.from_csv('inference/hier/*[1-4].csv')
+def make_plots(dir='inference'):
+    model_logreg = stan.from_csv(f'{dir}/logreg/*[1-4].csv')
+    model_hier = stan.from_csv(f'{dir}/hier/*[1-4].csv')
     y = load_data()['heart_disease'].values
 
     model_names = ['logistic regression', 'hierarchical']
