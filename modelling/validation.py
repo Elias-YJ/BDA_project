@@ -42,8 +42,17 @@ def accuracy_df(file_path):
 
     stat['sens'] = stat['tp']/(stat['tp']+stat['fn'])
     stat['spec'] = stat['tn'] / (stat['tn'] + stat['fp'])
+    stat['acc'] = stat['tp'] + stat['tn']
 
     return pd.DataFrame(data=stat)
+
+
+def create_accuracy_data():
+    output = {}
+    model_types = ['logreg', 'hier']
+    for model_type in model_types:
+        output[model_type] = accuracy_df(f'inference/{model_type}/*[1-4].csv')
+    return output
 
 
 def plot_accuracy():
@@ -51,9 +60,22 @@ def plot_accuracy():
     for model_type in model_types:
         df = accuracy_df(f'inference/{model_type}/*[1-4].csv')
 
-        fig, ax = plt.subplots(2, 2, figsize=(6, 6), dpi=120)
-        sns.histplot(df['tp'], ax=ax[0, 0])
-        sns.histplot(df['fp'], ax=ax[0, 1])
-        sns.histplot(df['tn'], ax=ax[1, 0])
-        sns.histplot(df['fp'], ax=ax[1, 1])
-        plt.savefig(f'figures/{model_type}_conf_hist.pdf')
+        fig, ax = plt.subplots(2, 2, figsize=(8, 8), dpi=100)
+        sns.kdeplot(df['tp'], ax=ax[0, 0])
+        sns.kdeplot(df['fp'], ax=ax[0, 1])
+        sns.kdeplot(df['fn'], ax=ax[1, 0])
+        sns.kdeplot(df['tn'], ax=ax[1, 1])
+
+        ax[0, 0].set_xlabel('True positives / total')
+        ax[0, 1].set_xlabel('False positives / total')
+        ax[1, 0].set_xlabel('False negatives / total')
+        ax[1, 1].set_xlabel('True negatives / total')
+
+        ax[0, 0].set_title(f'Mean value: {np.mean(df["tp"]):.2f}')
+        ax[0, 1].set_title(f'Mean value: {np.mean(df["fp"]):.2f}')
+        ax[1, 0].set_title(f'Mean value: {np.mean(df["fn"]):.2f}')
+        ax[1, 1].set_title(f'Mean value: {np.mean(df["tn"]):.2f}')
+
+        fig.tight_layout(pad=3.0)
+
+        plt.savefig(f'plots/{model_type}_conf_hist.pdf')
