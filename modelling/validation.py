@@ -23,10 +23,10 @@ def cross_validate(dir = 'inference'):
     return loos
 
 
-def accuracy_df(file_path):
+def accuracy_df(file_path, cutoff_prob=0.5):
     s = stan.from_csv(file_path)
     prob = expit(s.stan_variable('theta'))
-    pred = (prob > 0.5).astype(int)
+    pred = (prob > cutoff_prob).astype(int)
 
     y = data_loader.load_data().loc[:, 'heart_disease'].values
 
@@ -47,18 +47,18 @@ def accuracy_df(file_path):
     return pd.DataFrame(data=stat)
 
 
-def create_accuracy_data():
+def create_accuracy_data(prob=0.5):
     output = {}
     model_types = ['logreg', 'hier']
     for model_type in model_types:
-        output[model_type] = accuracy_df(f'inference/{model_type}/*[1-4].csv')
+        output[model_type] = accuracy_df(f'inference/{model_type}/*[1-4].csv', cutoff_prob=prob)
     return output
 
 
-def plot_accuracy():
+def plot_accuracy(prob=0.5):
     model_types = ['logreg', 'hier']
     for model_type in model_types:
-        df = accuracy_df(f'inference/{model_type}/*[1-4].csv')
+        df = accuracy_df(f'inference/{model_type}/*[1-4].csv', cutoff_prob=prob)
 
         fig, ax = plt.subplots(2, 2, figsize=(8, 8), dpi=100)
         sns.kdeplot(df['tp'], ax=ax[0, 0])
