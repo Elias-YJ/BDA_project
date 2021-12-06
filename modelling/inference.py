@@ -17,7 +17,9 @@ STAN_OPTS = dict(
     show_progress=True,
     iter_sampling=4000,
     threads_per_chain=4,
-    seed=1
+    seed=1,
+    adapt_delta=0.999,
+    max_treedepth=12,
 )
 
 OUTPUT_DIR='./inference'
@@ -48,7 +50,7 @@ def run_hier(df, stan_opts, output_dir, hier_column):
 
 def get_logreg_priors(data):
     priors = dict(
-        alpha_mu = 0 + 1,
+        alpha_mu = 0,
         alpha_scale = 1,
         beta_mu = np.zeros(data['M'])+1,
         beta_scale = np.ones(data['M']),
@@ -58,13 +60,13 @@ def get_logreg_priors(data):
 
 def get_hier_priors(data):
     priors = dict(
-        am_mu = 0+1,
+        am_mu = 0,
         am_scale = 1,
-        bm_mu = np.zeros(data['M'])+1,
+        bm_mu = np.zeros(data['M']),
         bm_scale = np.ones(data['M']),
-        as_mu = 0+1,
+        as_mu = 0,
         as_scale = 1,
-        bs_mu = np.zeros(data['M'])+1,
+        bs_mu = np.zeros(data['M']),
         bs_scale = np.ones(data['M']),
     )
     return priors
